@@ -1,7 +1,5 @@
 <template>
   <div id="app">
-    <backdrop v-if="showModal" @close="toggleModal"/>
-
     <template v-if="users.length > 0">
       <table class="user-table"  :class="{ 'modal-is-open': showModal }">
         <thead class="user-table__header">
@@ -20,7 +18,7 @@
             <td
               v-for="(item, i) in display_info"
               :key="`${item.value}-${i}--user-data-${index}`"
-              @click="item.value === 'planet' ? toggleModal() : null"
+              @click="item.value === 'planet' ? selectPlanet(user[item.value]) : null"
               :class="[
                 'user-table__user-cell',
                 { 'planet-value': item.value === 'planet'}
@@ -35,6 +33,37 @@
     <template v-else>
       Data loading...
     </template>
+
+    <backdrop v-if="showModal || showSidebar" @close="closeAll"/>
+    <!-- Planet Info Modal -->
+    <modal
+      v-if="showModal"
+      @close="closeModal"
+      :headerText="selectedPlanet.name"
+    >
+      <template v-slot:modal-body>
+      <div class="planet-info">
+        <p class="planet-info__cell">
+          <span class="planet-info__label">Name:</span>
+          <span class="planet-info__data">{{ selectedPlanet.name }}</span>
+        </p>
+        <p class="planet-info__cell">
+          <span class="planet-info__label">Diameter:</span>
+          <span class="planet-info__data">{{ formatNumber(selectedPlanet.diameter) }}</span>
+        </p>
+        <p class="planet-info__cell">
+          <span class="planet-info__label">Climate:</span>
+          <span class="planet-info__data">{{ selectedPlanet.climate }}</span>
+        </p>
+        <p class="planet-info__cell">
+          <span class="planet-info__label">Population:</span>
+          <span class="planet-info__data">{{ formatNumber(selectedPlanet.population) }}</span>
+        </p>
+      </div>
+        
+      </template>
+    </modal>
+    
   </div>
 </template>
 
@@ -42,12 +71,14 @@
 import { mapGetters, mapActions } from 'vuex';
 
 import Backdrop from './components/Backdrop.vue';
+import Modal from './components/Modal.vue';
 
 export default {
   name: 'App',
 
   components: {
     Backdrop,
+    Modal
   },
 
   data() {
@@ -79,7 +110,9 @@ export default {
         },
       ],
 
-      showModal: false
+      selectedPlanet: {},
+      showModal: false,
+      showSidebar: false
     };
   },
 
@@ -97,64 +130,29 @@ export default {
   methods: {
     ...mapActions(["fetchData"]),
 
-    toggleModal() {
-      this.showModal = !this.showModal;
+    formatNumber(num) {
+      return num.replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1,");
+    },
+
+    selectPlanet(name) {
+      let [chosenPlanet] = this.planets.filter(planet => planet.name === name);
+
+      this.selectedPlanet = chosenPlanet;
+      this.showModal = true;
+    },
+
+    closeAll() {
+      this.showModal = false;
+      this.showSidebar = false;
+    },
+
+    closeModal() {
+      this.showModal = false;
+    },
+
+    closeSidebar() {
+      this.showSidebar = false;
     }
   }
 }
 </script>
-
-<style lang="scss" scoped>
-// Screen Sizes
-$tablet: "450px";
-$desktop: "768px";
-
-// Colors
-
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  padding-top: 60px;
-
-  &.modal-is-open {
-    position: fixed;
-    height: 100vh;
-    width: 100vh;
-    overflow-y: hidden;
-  }
-}
-
-
-
-.planet-value {
-  cursor: pointer;
-  
-  &:hover {
-    text-decoration: underline;
-  }
-}
-
-.user-table {
-  border: 2px solid black;
-  border-collapse: collapse;
-  border-radius: 5px;
-  margin: 0 auto;
-
-  &__header {
-    font-size: 1.75rem;
-  }
-
-  &__header-cell {
-    padding: 0 10px;
-  }
-
-  &__user-cell {
-    font-size: 1.25rem;
-    padding: 5px 10px;
-    border-top: 1px solid black;
-  }
-}
-</style>

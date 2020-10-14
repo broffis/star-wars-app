@@ -1,0 +1,28 @@
+.modal {
+  background-color: white;
+  left: 25%;
+  max-width: 500px;
+  
+  position: absolute;
+  top: 15%;
+  width: 50%;
+  z-index: 500;
+
+  &__close {
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+  }
+
+
+  &__header {
+    background-color: hotpink;
+    display: flex;
+    justify-content: space-between;
+    padding: 5px 15px;
+  }
+
+  &__heading {
+    font-size: 1.5rem;
+  }
+}
