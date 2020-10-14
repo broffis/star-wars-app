@@ -1,0 +1,29 @@
+<template>
+  <div class="backdrop" @click="close" />
+</template>
+
+<script>
+export default {
+  name: "Backdrop",
+
+  methods: {
+    close() {
+      this.$emit('close');
+    }
+  }
+
+}
+</script>
+
+<style lang="scss" scoped>
+
+.backdrop {
+  background-color: rgba(0, 0, 0, 0.2);
+  height: 100vh;
+  left: 0;
+  position: absolute;
+  top: 0;
+  width: 100%;
+  z-index: 1;
+}
+</style>
