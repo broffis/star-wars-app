@@ -1,7 +1,7 @@
 <template>
   <div class="modal" role="document">
     <header v-if="showHeader" class="modal__header">
-      <h3 class="modal__heading" id="testModal3__title">
+      <h3 class="modal__heading">
         {{ headerText }}
       </h3>
       <button
@@ -12,7 +12,9 @@
         data-target="#modal"
         @click="closeModal"
       >
-        <i class="fas fa-times"></i>
+        <!-- <i class="fas fa-times"></i> -->
+        <i class="fas fa-times-circle"></i>
+        
       </button>
     </header>
     <slot name="modal-body">

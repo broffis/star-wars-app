@@ -3,3 +3,10 @@
 // Screen Sizes
 $tablet: "450px";
 $desktop: "768px";
+
+
+.hide-mobile {
+  @media screen and (max-width: $desktop) {
+    display:  none;
+  }
+}

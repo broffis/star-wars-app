@@ -1,13 +1,23 @@
 <template>
   <div id="app">
+    <nav class="nav-bar">
+      <ul class="nav-bar__links">
+        <li class="nav-bar__link"><a href="https://github.com/broffis/star-wars-app"><i class="fab fa-github"></i></a></li>
+      </ul>
+    </nav>
     <template v-if="users.length > 0">
-      <table class="user-table"  :class="{ 'modal-is-open': showModal }">
+      <table class="user-table"  :class="{ 'modal-is-open': showPlanetModal }">
         <thead class="user-table__header">
           <tr class="user-table__row">
             <th
               v-for="(item, index) in display_info"
               :key="`${item.value}-${index}`"
-              class="user-table__header-cell">{{ item.label }}</th>
+              :class="[
+                'user-table__header-cell',
+                { 'hide-mobile' : !showOnMobile(item.value) && isMobile}
+              ]">
+              {{ item.label }}
+            </th>
           </tr>
         </thead>
         <tbody class="user-table__body">
@@ -18,10 +28,13 @@
             <td
               v-for="(item, i) in display_info"
               :key="`${item.value}-${i}--user-data-${index}`"
-              @click="item.value === 'planet' ? selectPlanet(user[item.value]) : null"
+              @click="item.value === 'planet' ? selectPlanet(user[item.value]) : 
+                item.value === 'name' && isMobile ? selectUser(user[item.value]) : null"
               :class="[
                 'user-table__user-cell',
-                { 'planet-value': item.value === 'planet'}
+                { 'planet-value': item.value === 'planet'},
+                { 'hide-mobile' : !showOnMobile(item.value) && isMobile}
+
               ]"
             >
               {{ user[item.value] }}
@@ -31,33 +44,64 @@
       </table>
     </template>
     <template v-else>
+      <p class="loading-text">
       Data loading...
+      </p>
     </template>
 
-    <backdrop v-if="showModal || showSidebar" @close="closeAll"/>
+    <backdrop v-if="showPlanetModal || showSidebar || showUserModal" @close="closeAll"/>
     <!-- Planet Info Modal -->
     <modal
-      v-if="showModal"
+      v-if="showPlanetModal"
       @close="closeModal"
       :headerText="selectedPlanet.name"
     >
       <template v-slot:modal-body>
-      <div class="planet-info">
-        <p class="planet-info__cell">
-          <span class="planet-info__label">Name:</span>
-          <span class="planet-info__data">{{ selectedPlanet.name }}</span>
+      <div class="modal-info">
+        <p class="modal-info__cell">
+          <span class="modal-info__label">Name:</span>
+          <span class="modal-info__data">{{ selectedPlanet.name }}</span>
         </p>
-        <p class="planet-info__cell">
-          <span class="planet-info__label">Diameter:</span>
-          <span class="planet-info__data">{{ formatNumber(selectedPlanet.diameter) }}</span>
+        <p class="modal-info__cell">
+          <span class="modal-info__label">Diameter:</span>
+          <span class="modal-info__data">{{ formatNumber(selectedPlanet.diameter) }}</span>
         </p>
-        <p class="planet-info__cell">
-          <span class="planet-info__label">Climate:</span>
-          <span class="planet-info__data">{{ selectedPlanet.climate }}</span>
+        <p class="modal-info__cell">
+          <span class="modal-info__label">Climate:</span>
+          <span class="modal-info__data">{{ selectedPlanet.climate }}</span>
         </p>
-        <p class="planet-info__cell">
-          <span class="planet-info__label">Population:</span>
-          <span class="planet-info__data">{{ formatNumber(selectedPlanet.population) }}</span>
+        <p class="modal-info__cell">
+          <span class="modal-info__label">Population:</span>
+          <span class="modal-info__data">{{ formatNumber(selectedPlanet.population) }}</span>
+        </p>
+      </div>
+        
+      </template>
+    </modal>
+
+    <!-- User Info Modal -->
+    <modal
+      v-if="showUserModal"
+      @close="closeModal"
+      :headerText="selectedUser.name"
+    >
+      <template v-slot:modal-body>
+      <div class="modal-info">
+        <p class="modal-info__cell">
+          <span class="modal-info__label">Height (cm):</span>
+          <span class="modal-info__data">{{ selectedUser.height }}</span>
+        </p>
+        <p class="modal-info__cell">
+          <span class="modal-info__label">Mass (kg):</span>
+          <span class="modal-info__data">{{ formatNumber(selectedUser.mass) }}</span>
+        </p>
+        <p class="modal-info__cell">
+          <span class="modal-info__label">Created:</span>
+          <span class="modal-info__data">{{ selectedUser.created }}</span>
+        </p>
+        <p class="modal-info__cell">
+          <span class="modal-info__label">Edited:</span>
+          <span class="modal-info__data">{{ selectedUser.edited }}</span>
         </p>
       </div>
         
@@ -110,9 +154,15 @@ export default {
         },
       ],
 
+      isMobile: false,
+
       selectedPlanet: {},
-      showModal: false,
-      showSidebar: false
+      showPlanetModal: false,
+
+      selectedUser: {},
+      showUserModal: false,
+
+      showSidebar: false,
     };
   },
 
@@ -120,15 +170,31 @@ export default {
     ...mapGetters({
       users: "users",
       planets: "planets"
-    })
+    }),
   },
 
   mounted() {
+    this.isMobile = screen.width < 768;
     this.fetchData();
   },
 
   methods: {
     ...mapActions(["fetchData"]),
+
+    closeAll() {
+      this.showPlanetModal = false;
+      this.showUserModal = false;
+      this.showSidebar = false;
+    },
+
+    closeModal() {
+      this.showPlanetModal = false;
+      this.showUserModal = false;
+    },
+
+    closeSidebar() {
+      this.showSidebar = false;
+    },
 
     formatNumber(num) {
       return num.replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1,");
@@ -138,20 +204,22 @@ export default {
       let [chosenPlanet] = this.planets.filter(planet => planet.name === name);
 
       this.selectedPlanet = chosenPlanet;
-      this.showModal = true;
+      this.showPlanetModal = true;
     },
 
-    closeAll() {
-      this.showModal = false;
-      this.showSidebar = false;
-    },
+    selectUser(name) {
+      console.log('select user')
+      let [chosenUser] = this.users.filter(user => user.name === name);
 
-    closeModal() {
-      this.showModal = false;
-    },
+      console.log(chosenUser)
 
-    closeSidebar() {
-      this.showSidebar = false;
+      this.selectedUser = chosenUser;
+      this.showUserModal = true;
+    },
+    
+    showOnMobile(val) {
+      if (val === "planet" || val === "name") return true;
+      return false;
     }
   }
 }
