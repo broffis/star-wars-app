@@ -28,7 +28,8 @@ export default {
           .then(data => {
             apiUsers.push(...data.results)
             if (data.next !== null) {
-              getUsers(data.next);
+              let nextUrl = data.next.replace('http:', 'https:');
+              getUsers(nextUrl);
             } else {
               userDataComplete = true;
             }
@@ -46,7 +47,8 @@ export default {
           .then(data => {
             apiPlanets.push(...data.results)
             if (data.next !== null) {
-              getPlanets(data.next);
+              let nextUrl = data.next.replace('http:', 'https:');
+              getPlanets(nextUrl);
             } else {
               planetDataComplete = true;
             }
