@@ -86,7 +86,7 @@ export default {
         }
       }
 
-      getUsers('https://swapi.dev/api/people');
+      getUsers('https://swapi.dev/api/people/');
       getPlanets('https://swapi.dev/api/planets/');
       
     }
